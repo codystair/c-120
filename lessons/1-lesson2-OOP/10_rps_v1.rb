@@ -7,6 +7,10 @@ class Player
     @score = 0
     @choices = []
   end
+
+  def to_s
+    @name
+  end
 end
 # ------------------------------------------------------------------------------
 class Human < Player
@@ -33,14 +37,8 @@ class Human < Player
   end
 
   def ask_choice
-    prompt_valid_choices
     answer = gets.chomp # r or rock
     regularize_choice(answer)
-  end
-
-  def prompt_valid_choices
-    puts "\nPlease choose from (#{Choice::MOVES_AND_WINS.keys.join(', ')}): "
-    puts 'Or use simplified: (r, p, sc, l, sp)'
   end
 
   def choose
@@ -77,6 +75,13 @@ class Computer < Player
     self.choice = chosed
     choices << chosed.value
   end
+
+  def reset_personality
+    personality.set_type
+    personality.set_preference
+    personality.set_weights
+    set_name
+  end
 end
 # ------------------------------------------------------------------------------
 module Stylable
@@ -107,14 +112,26 @@ class Personality
   # casual: randomly chooses
 
   def initialize
-    @type = TYPES.sample
+    set_type
+    set_preference
+    set_weights
+  end
+
+  def set_preference
     if @type == 'Lazy' || @type == 'Stubborn'
       @preference = Choice::MOVES_AND_WINS.keys.sample
     elsif @type == 'Rocky'
       @preference = 'rock'
     end
+  end
+
+  def set_weights
     @weights = {}
     Choice::MOVES_AND_WINS.keys.each { |choice| @weights[choice] = 20 }
+  end
+
+  def set_type
+    @type = TYPES.sample
   end
 
   def reallocate_weights(last_winner, last_choice)
@@ -173,49 +190,39 @@ class RPSGame
   @@winning_score = 1
 
   def initialize
+    system('clear')
+    puts ' Hello! Welcome to Rock Paper Scissors! '.centralize
     @human = Human.new
     @computer = Computer.new
   end
 
-  def set_winning_score
+  def set_game
     puts "\nPlease set a winning score(number of rounds to win): "
     answer = gets.chomp
     if answer.to_i.to_s == answer
       @@winning_score = answer.to_i
-      puts " The one who first won #{@@winning_score} \
-  rounds would be the finnal winner".centralize
+      puts " Who got #{@@winning_score} scores would be the winner!".centralize
     else
       puts 'You should enter a number: '
-      set_winning_score
+      set_game
     end
   end
 
-  def update_winner_and_score
+  def display_players
+    puts " #{human.name} VS #{computer.name} ".centralize('-')
+  end
+
+  def display_rule
+    puts "\nPlease choose from (#{Choice::MOVES_AND_WINS.keys.join(', ')}): "
+    puts 'Or use simplified: (r, p, sc, l, sp)'
+  end
+
+  def update_winner
     self.last_winner =
-      if human.choice == computer.choice
-        'none'
-      elsif human.choice > computer.choice
-        'human'
-      else
-        'computer'
+      if human.choice == computer.choice then 'none'
+      elsif human.choice > computer.choice then 'human'
+      else 'computer'
       end
-    update_scores
-  end
-
-  def display_result
-    case last_winner
-    when 'none'
-      puts 'It\'s a Tie this round!!!'
-    when 'computer'
-      puts 'You Lost this round!!!'
-    else
-      puts 'You Won this round!!!'
-    end
-  end
-
-  def conclude
-    update_winner_and_score
-    computer.personality.reallocate_weights(last_winner, computer.choice.value)
   end
 
   def update_scores
@@ -225,59 +232,74 @@ class RPSGame
     end
   end
 
-  def display_choices_and_scores
-    system('clear')
-    puts "(You)[#{human.choice}] VS [#{computer.choice}](#{computer.name})"
-    display_result
-    puts "\nCurrent scores: #{human.name}( #{human.score} ) \
-VS #{computer.name}( #{computer.score} )"
+  def update_game_info
+    update_winner
+    update_scores
+    computer.personality.reallocate_weights(last_winner, computer.choice.value)
+    display_unit_result
   end
 
-  def operate_game
-    if computer.score >= @@winning_score then self.finnal_winner = computer
-    elsif human.score >= @@winning_score then self.finnal_winner = human
-    else
-      round_fight
-      operate_game
+  def display_choices
+    system('clear')
+    puts "(You)[#{human.choice}] VS [#{computer.choice}](#{computer.name})"
+  end
+
+  def display_scores
+    puts "\nScores: #{human}(#{human.score}) VS #{computer}(#{computer.score})"
+  end
+
+  def display_winner
+    if last_winner == 'none' then puts "\nIt's a Tie this round!"
+    elsif last_winner == 'human' then puts "\n#{human} Won this round."
+    else puts "\n#{computer} Won this round."
     end
   end
 
-  def round_fight
-    human.choose
-    computer.choose
-    conclude
-    display_choices_and_scores
-  end
-
-  def display_players
-    puts " #{human.name} VS #{computer.name} ".centralize('-')
+  def display_unit_result
+    display_choices
+    display_winner
+    display_scores
   end
 
   def play_again?
     puts "\nPlay again? Press 'y' to continue, any other input to exit"
     answer = gets.chomp
-    if answer.downcase.start_with?('y')
-      true
-    else
-      false
+    answer.downcase.start_with?('y') ? true : false
+  end
+
+  def display_final_winner
+    winner = [human, computer].select do |player|
+      player.score == @@winning_score
+    end[0]
+    puts " #{winner.name} won this set! ".centralize('-')
+  end
+
+  def reset_game
+    human.score = 0
+    computer.score = 0
+    computer.reset_personality
+  end
+
+  def run_a_round
+    loop do
+      display_rule
+      human.choose
+      computer.choose
+      update_game_info
+      if human.score == @@winning_score || computer.score == @@winning_score
+        display_final_winner
+        break
+      end
     end
   end
 
-  def reset_score
-    human.score = 0
-    computer.score = 0
-  end
-
-  def begin
+  def run_a_game
+    set_game
     loop do
-      system('clear')
-      puts " Hello #{human.name}! Welcome to Rock Paper Scissors! ".centralize
-      set_winning_score
       display_players
-      operate_game
-      puts " #{finnal_winner.name} finally won!!! ".centralize('-')
+      run_a_round
       break unless play_again?
-      reset_score
+      reset_game
     end
   end
 end
@@ -288,4 +310,4 @@ class String
   end
 end
 
-RPSGame.new.begin
+RPSGame.new.run_a_game
