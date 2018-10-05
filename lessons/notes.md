@@ -16,22 +16,43 @@ everything in Ruby is considered "truthy" except for false and nil.
 
 because || didn't evaluate the second expression; it short circuited after encountering true.
 
-### Program Operation/ Gameplay
-- improved validation cycle with `ask_name`
-- accepts abbreviated input
-- clear screen after finishing a round
-- user can choose to play again or exit after finishing a set
-- at the beginning of every new set, computer's personality will be reset
-### Rubocop
-As you said, rubocop complains about the use of class variable. I considered constant at first, but it needs to dynamically change winning score, so I chose class variable. You mentioned I should be careful if there existed inheritance relationship on class that contains class variable, I'll then notice that.
+In summary, the == method compares the two variables' values whereas the equal? method determines whether the two variables point to the same object.
 
-Another complaint about '%w-literals', if I change it to `%w[]` for array of strings, I got:
-```ruby
-10_rps_v1.rb:108:11: C: %w-literals should be delimited by ( and ).
-```
-So I think maybe it's the `.yml` file is too old in my computer, and I do think using `%[]` makes more sense for array.
-### Source Code
-- I rearranged `class RPSGame`, tried to make methods name more consistent and meaningful
-- delete redundant method for setting user's name
-- integrate `MOVES` and `WINS` into a hash `MOVES_AND_WINS`, this does a greate simplification on my code
-- corrected typos
+The original == method is defined in the BasicObject class, which is the parent class for all classes in Ruby. This implies every object in Ruby has a == method. However, each class should override the == method to specify the value to compare.
+
+when you define a == method, you also get the != for free.
+
+When === compares two objects, such as (1..50) and 25, it's essentially asking "if (1..50) is a group, would 25 belong in that group?"
+
+### variable scope
+
+Instance variables are variables that start with @ and are scoped at the object level. They are used to track individual object state, and do not cross over between objects.
+
+Unlike local variables, instance variables are accessible within an instance method even if they are not initialized or passed in to the method. Remember, their scope is at the object level.
+
+If you try to reference an uninitialized local variable, you'd get a NameError. But if you try to reference an uninitialized instance variable, you get nil.
+
+Class variables start with @@ and are scoped at the class level. They exhibit two main behaviors:
+
+- all objects share 1 copy of the class variable. (This also implies objects can access class variables by way of instance methods.)
+- class methods can access class variables, regardless of where it's initialized.
+
+For some odd reason, the class variable in the sub-class affected the class variable in the super class. Worse still, this change will affect all other sub-classes of Vehicle!
+
+For this reason, avoid using class variables when working with inheritance. In fact, some Rubyists would go as far as recommending avoiding class variables altogether. The solution is usually to use class instance variables.
+
+Be mindful that constant resolution rules are different from method lookup path or instance variables.
+
+- Instance Variables behave the way we'd expect. The only thing to watch out for is to make sure the instance variable is initialized before referencing it.
+- Class Variables have a very insidious behavior of allowing sub-classes to override super-class class variables. Further, the change will affect all other sub-classes of the super-class. This is extremely unintuitive behavior, forcing some Rubyists to eschew using class variables altogether.
+- Constants have lexical scope which makes their scope resolution rules very unique compared to other variable types. If Ruby doesn't find the constant using lexical scope, it'll then look at the inheritance hierarchy.
+
+Handling all exceptions may result in masking critical errors and can make debugging a very difficult task.
+
+Using a begin/rescue block to handle errors can keep your program from crashing if the exception you have specified is raised.
+
+ If no exception is raised, the rescue clause will not be executed at all and the program will continue to run normally.
+
+ If no exception type is specified, all StandardError exceptions will be rescued and handled. Remember not to tell Ruby to rescue Exception class exceptions. Doing so will rescue all exceptions down the Exception class hierarchy and is very dangerous, as explained previously.
+
+ retry must be called within the rescue block
