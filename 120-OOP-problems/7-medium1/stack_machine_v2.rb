@@ -1,3 +1,4 @@
+require 'pry'
 class Minilang
   attr_accessor :register, :commands
   attr_reader :stack
@@ -20,20 +21,26 @@ class Minilang
 
   def eval(hsh=nil)
     begin
-      self.commands = format(commands, hsh) if hsh
-      commands.split.each { |obj| meet(obj) }
+      formatted_commands = format_commands(hsh)
+      formatted_commands.split.each { |obj| meet(obj) }
     rescue NoMethodError, SystemStackError => error
       puts error.message
+    end
+  end
+
+  def format_commands(hsh)
+    if hsh
+      format(commands, hsh)
+    else
+      commands
     end
   end
 
   private
 
   def meet(obj)
-    if obj.to_i.to_s == obj # it's a integer
+    if obj.to_i.to_s == obj
       self.register = obj.to_i
-    # elsif hsh && hsh.keys[0].to_s == obj
-    #   self.register = hsh.values[0]
     else
       perform(obj)
     end
