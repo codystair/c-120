@@ -1,10 +1,6 @@
-# Methods that will touch the stack
-  # push, add, sub, mult, div, mod, pop
-# Methods that will not touch the stack
-  # n, print
 class Minilang
-  attr_accessor :register
-  attr_reader :stack, :commands
+  attr_accessor :register, :commands
+  attr_reader :stack
 
   METHODS = {
     'PUSH' => :push,
@@ -22,8 +18,13 @@ class Minilang
     @commands = commands
   end
 
-  def eval
-    commands.split.each { |obj| meet(obj) }
+  def eval(hsh=nil)
+    begin
+      self.commands = format(commands, hsh) if hsh
+      commands.split.each { |obj| meet(obj) }
+    rescue NoMethodError, SystemStackError => error
+      puts error.message
+    end
   end
 
   private
@@ -31,24 +32,34 @@ class Minilang
   def meet(obj)
     if obj.to_i.to_s == obj # it's a integer
       self.register = obj.to_i
+    # elsif hsh && hsh.keys[0].to_s == obj
+    #   self.register = hsh.values[0]
     else
       perform(obj)
     end
   end
 
   def perform(method)
-    if method == 'POP' then self.register = stack.pop
+    if method == 'POP' then mini_pop
     elsif method == 'PRINT' then mini_print
     elsif method == 'PUSH' then stack << register
     elsif METHODS.keys.include?(method)
       self.register = register.send(METHODS[method], stack.pop)
     else
-      puts "Invalid token: #{method}"
+      raise NoMethodError, "Invalid token: #{method}"
     end
   end
 
   def mini_print
     register ? puts(register) : puts('Empty stack!')
+  end
+
+  def mini_pop
+    if stack.empty?
+      raise SystemStackError, "Empty stack!"
+    else
+      self.register = stack.pop
+    end
   end
 end
 
@@ -84,3 +95,13 @@ Minilang.new('-3 PUSH 5 SUB PRINT').eval
 
 Minilang.new('6 PUSH').eval
 # (nothing printed; no PRINT commands)
+
+CENTIGRADE_TO_FAHRENHEIT =
+  '5 PUSH %<degrees_c>d PUSH 9 MULT DIV PUSH 32 ADD PRINT'
+minilang = Minilang.new(CENTIGRADE_TO_FAHRENHEIT)
+minilang.eval(degrees_c: 100)
+# 212
+minilang.eval(degrees_c: 0)
+# 32
+minilang.eval(degrees_c: -40)
+# -40

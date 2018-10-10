@@ -41,7 +41,7 @@ class Minilang
     elsif method == 'PRINT' then mini_print
     elsif method == 'PUSH' then stack << register
     elsif METHODS.keys.include?(method)
-      self.register = stack.pop.send(METHODS[method], register)
+      self.register = register.send(METHODS[method], stack.pop)
     else
       raise NoMethodError, "Invalid token: #{method}"
     end
