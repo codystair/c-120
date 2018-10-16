@@ -1,4 +1,3 @@
-require 'pry'
 #
 module Displayable
   def display
@@ -74,12 +73,11 @@ module Winnable
     ud_edge_nums + lr_edge_nums
   end
 
-  def one_of_win_com?(array_with_three)
+  def one_of_win_combinations?(array_with_three)
     arr = array_with_three.sort
-    c1 = win_horizontally?(arr)
-    c2 = win_vertically?(arr)
-    c3 = win_diagonally?(arr)
-    c1 || c2 || c3
+    win_horizontally?(arr) ||
+      win_vertically?(arr) ||
+      win_diagonally?(arr)
   end
 
   def consecutive_with_diff?(array_with_three, diff)
@@ -108,9 +106,9 @@ module Winnable
     lr_edge_nums.none? { |edge_num| array_with_three[1] == edge_num }
   end
 
-  def calculate_win_coms
+  def calculate_win_combinationss
     (1..scale**2).to_a.combination(3).select do |choiced_nums|
-      one_of_win_com?(choiced_nums)
+      one_of_win_combinations?(choiced_nums)
     end
   end
 end
@@ -118,13 +116,13 @@ end
 class Board
   include Displayable
   include Winnable
-  attr_reader :cells, :scale, :win_coms
+  attr_reader :cells, :scale, :win_combinationss
 
   def initialize(scale)
     @scale = scale
     @cells = {}
     (1..(scale**2)).each { |ord| @cells[ord] = nil }
-    @win_coms = calculate_win_coms
+    @win_combinationss = calculate_win_combinationss
   end
 
   def empty_cells
@@ -133,32 +131,6 @@ class Board
 
   def npc_choices
     cells.select { |_, owner| owner == 'O' }.keys
-  end
-
-  def human_choices
-    cells.select { |_, owner| owner == 'X' }.keys
-  end
-
-  def defensive_moves
-    moves = []
-    win_coms.each do |win_com|
-      if (win_com & human_choices).size == 2
-        next_move = win_com - human_choices
-        moves << next_move.first if empty_cells.include?(next_move.first)
-      end
-    end
-    moves
-  end
-
-  def offensive_moves
-    moves = []
-    win_coms.each do |win_com|
-      if (win_com & npc_choices).size == 2
-        next_move = win_com - npc_choices
-        moves << next_move.first if empty_cells.include?(next_move.first)
-      end
-    end
-    moves
   end
 end
 # ------------------------------------------------------------------------------
@@ -175,31 +147,12 @@ end
 # ------------------------------------------------------------------------------
 class Player
   attr_reader :species, :name
-  attr_accessor :score, :mark
+  attr_accessor :score
 
   def initialize(species = :human)
     @species = species
     @score = 0
-    @mark = set_mark
     @name = set_name
-  end
-
-  def set_mark
-    case species
-    when :npc then 'O'
-    when :human then ask_for_mark
-    end
-  end
-
-  def ask_for_mark
-    puts "\n\nChoose your mark(1 character), letter 'O' has been taken: "
-    answer = gets.chomp.upcase
-    if answer.length == 1 && answer != ' ' && answer != 'O'
-      answer
-    else
-      puts 'Invalid choice!'
-      ask_for_mark
-    end
   end
 
   def set_name
@@ -213,7 +166,7 @@ class Player
     puts 'Enter your name: '
     answer = gets.chomp.strip
     if answer.empty?
-      puts 'Name should not be emtpy, try again!'
+      puts 'Name should not be empty, try again!'
       ask_for_name
     else
       answer.capitalize
@@ -222,7 +175,7 @@ class Player
 end
 # ------------------------------------------------------------------------------
 class TTTGame
-  attr_reader :board, :human, :npc, :board_scale
+  attr_reader :board, :human, :npc, :board_scale, :human_mark
   attr_accessor :winner, :current_turn
 
   WINING_SCORE = 2
@@ -233,7 +186,23 @@ class TTTGame
     @human = Player.new
     @npc = Player.new(:npc)
     @board_scale = ask_for_scale
+    @human_mark = ask_for_mark
     reset_board
+  end
+
+  def ask_for_mark
+    puts "\n\nChoose your mark(1 character), letter 'O' has been taken: "
+    answer = gets.chomp.upcase
+    if answer.length == 1 && answer != ' ' && answer != 'O'
+      answer
+    else
+      puts 'Invalid choice!'
+      ask_for_mark
+    end
+  end
+
+  def human_choices
+    board.cells.select { |_, owner| owner == human_mark }.keys
   end
 
   def put_instruction
@@ -246,9 +215,10 @@ class TTTGame
         2)your user name
         3)the scale of the game board
 
-      The game would begin.
-      Who first got 3 marks in a line would win a round.
+      Who first got 3 marks in a line would win a round and earn 1 score.
                     ^
+      Who got #{WINING_SCORE} scores would win a set.
+              ^
     M
   end
 
@@ -305,7 +275,30 @@ class TTTGame
       display_result
       break if someone_won_the_game?
     end
+    clear
     report_set_winner
+  end
+
+  def defensive_moves
+    moves = []
+    board.win_combinationss.each do |win_combinations|
+      if (win_combinations & human_choices).size == 2
+        next_move = win_combinations - human_choices
+        moves << next_move.first if board.empty_cells.include?(next_move.first)
+      end
+    end
+    moves
+  end
+
+  def offensive_moves
+    moves = []
+    board.win_combinationss.each do |win_combinations|
+      if (win_combinations & board.npc_choices).size == 2
+        next_move = win_combinations - board.npc_choices
+        moves << next_move.first if board.empty_cells.include?(next_move.first)
+      end
+    end
+    moves
   end
 
   private
@@ -323,7 +316,14 @@ class TTTGame
   def play_again?
     puts 'Play again? (Y / N)'
     answer = gets.chomp
-    answer.downcase.start_with?('y') ? true : false
+    if answer.downcase.start_with?('y')
+      true
+    elsif answer.downcase.start_with?('n')
+      false
+    else
+      puts 'Invalid input.'
+      play_again?
+    end
   end
 
   def play_a_round
@@ -333,6 +333,7 @@ class TTTGame
       current_player_moves
       break if someone_won_a_round? || board_full?
     end
+    clear
   end
 
   def report_score
@@ -367,22 +368,22 @@ class TTTGame
 
   def npc_moves
     move = npc_make_choice
-    board.cells[move] = npc.mark
+    board.cells[move] = 'O'
     self.current_turn = 'human'
     display_board
   end
 
   def npc_make_choice
     prior_cell = (board.empty_cells - board.edge_nums).sample
-    board.offensive_moves.sample ||
-      board.defensive_moves.sample ||
+    offensive_moves.sample ||
+      defensive_moves.sample ||
       prior_cell ||
       board.empty_cells.sample
   end
 
   def i_move
     move = ask_for_move
-    board.cells[move] = human.mark
+    board.cells[move] = human_mark
     self.current_turn = 'npc'
     clear
   end
@@ -407,13 +408,12 @@ class TTTGame
   def someone_won_a_round?
     if did_i_win?
       self.winner = human.name
-      true
+      return true
     elsif did_npc_win?
       self.winner = npc.name
-      true
-    else
-      false
+      return true
     end
+    false
   end
 
   def someone_won_the_game?
@@ -421,15 +421,19 @@ class TTTGame
   end
 
   def did_i_win?
-    board.win_coms.any? { |win_com| (board.human_choices & win_com).size == 3 }
+    board.win_combinationss.any? do |win_combinations|
+      (human_choices & win_combinations).size == 3
+    end
   end
 
   def did_npc_win?
-    board.win_coms.any? { |win_com| (board.npc_choices & win_com).size == 3 }
+    board.win_combinationss.any? do |win_combinations|
+      (board.npc_choices & win_combinations).size == 3
+    end
   end
 
   def clear
-    system 'clear'
+    system('clear') || system('cls')
   end
 end
 
