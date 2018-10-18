@@ -29,7 +29,7 @@ module Instruction
 end
 # ------------------------------------------------------------------------------
 class Player
-  attr_reader :species, :name
+  attr_reader :species
   attr_accessor :current_move, :cards_in_hand
 
   def initialize(species)
