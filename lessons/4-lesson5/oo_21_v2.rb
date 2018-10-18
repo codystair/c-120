@@ -1,4 +1,3 @@
-require 'pry'
 # ------------------------------------------------------------------------------
 module Instruction
   def introduce_rule
