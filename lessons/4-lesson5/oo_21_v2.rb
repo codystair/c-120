@@ -2,6 +2,7 @@ require 'pry'
 # ------------------------------------------------------------------------------
 module Instruction
   def introduce_rule
+    clear_screen
     puts(<<-M)
 
 --------------------- Welcome to [21 point] card game! ---------------------
@@ -29,8 +30,8 @@ module Instruction
 end
 # ------------------------------------------------------------------------------
 class Player
-  attr_reader :species, :name, :cards_in_hand
-  attr_accessor :current_move
+  attr_reader :species, :name
+  attr_accessor :current_move, :cards_in_hand
 
   def initialize(species)
     @cards_in_hand = []
@@ -93,12 +94,15 @@ class Game
   end
 
   def initialize_cards
-    [human, npc].each { |player| 2.times { deal_to(player) } }
+    [human, npc].each do |player|
+      player.cards_in_hand = []
+      2.times { deal_to(player) }
+    end
     npc.cards_in_hand.first.state = :private
-    prompt_new_round
   end
 
   def prompt_new_round
+    clear_screen
     puts "\n\n"
     puts ' New round fight '.center(80, ' - ')
   end
@@ -126,8 +130,8 @@ class Game
     puts "\nYou chose to #{human.current_move}"
   end
 
-  def clear_screen
-    system('clear') || system('cls')
+  def clear_screen(new_game = false)
+    system('clear') || system('cls') unless new_game
   end
 
   def npc_make_choice
@@ -183,18 +187,40 @@ class Game
 
   def play
     introduce_rule
-    initialize_cards
-    display_cards
     loop do
+      play_a_round
+      break unless play_again?
+    end
+  end
+
+  def play_a_round
+    new_game = true
+    initialize_cards
+    loop do
+      clear_screen(new_game)
+      display_cards
       human_make_choice
       break if human.busted?
       npc_make_choice
-      break if npc.busted?
-      break if both_staying? || tie?
-      display_cards
+      break if npc.busted? || both_staying? || tie?
     end
     report_result
     display_cards(true)
+  end
+
+  def play_again?
+    puts "\n\n"
+    puts " Do you wanna play again?(Y / N): ".center(80, ' - ')
+    answer = gets.chomp
+    if answer.downcase.start_with?('y')
+      prompt_new_round
+      return true
+    elsif answer.downcase.start_with?('n')
+      return false
+    else
+      puts 'Invalid request, try again.'
+      play_again?
+    end
   end
 
   def deal_to(player)
