@@ -37,6 +37,23 @@ class Player
     @species = species
   end
 
+  def total
+    pre_sum = sum_of_cards_value
+    if pre_sum > 21 && big_ace_count >= 1
+      readjust_cards_value
+      sum_of_cards_value
+    else
+      pre_sum
+    end
+  end
+
+  def busted?
+    puts "#{species.capitalize} busted!".center(80) if total > 21
+    total > 21
+  end
+
+  private
+
   def readjust_cards_value
     if big_ace_count == 1
       degrade_an_ace
@@ -61,21 +78,6 @@ class Player
   def sum_of_cards_value
     cards_in_hand.inject(0) { |acc, card| acc + card.value }
   end
-
-  def total
-    pre_sum = sum_of_cards_value
-    if pre_sum > 21 && big_ace_count >= 1
-      readjust_cards_value
-      sum_of_cards_value
-    else
-      pre_sum
-    end
-  end
-
-  def busted?
-    puts "#{species.capitalize} busted!".center(80) if total > 21
-    total > 21
-  end
 end
 # ------------------------------------------------------------------------------
 class Game
@@ -87,10 +89,15 @@ class Game
     initialize_players
   end
 
-  def initialize_players
-    @human = Player.new(:human)
-    @npc = Player.new(:npc)
+  def play
+    introduce_rule
+    loop do
+      play_a_round
+      break unless play_again?
+    end
   end
+
+  private
 
   def initialize_cards
     [human, npc].each do |player|
@@ -159,13 +166,13 @@ class Game
     show_values
   end
 
+  def tie?
+    human.total == npc.total
+  end
+
   def show_values
     puts ''
     puts "#{human.total}(you) VS #{npc.total}(npc)".center(80)
-  end
-
-  def tie?
-    human.total == npc.total
   end
 
   def winner_without_busted
@@ -181,14 +188,6 @@ class Game
       'npc'
     elsif npc.total > 21
       'human'
-    end
-  end
-
-  def play
-    introduce_rule
-    loop do
-      play_a_round
-      break unless play_again?
     end
   end
 
@@ -236,6 +235,11 @@ class Game
     human.cards_in_hand.each { |card| puts card }
     puts "\nNpc's cards are: "
     npc.cards_in_hand.each { |card| puts card }
+  end
+
+  def initialize_players
+    @human = Player.new(:human)
+    @npc = Player.new(:npc)
   end
 end
 # ------------------------------------------------------------------------------
