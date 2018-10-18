@@ -136,8 +136,8 @@ class Game
     puts "\nYou chose to #{human.current_move}"
   end
 
-  def clear_screen(new_game = false)
-    system('clear') || system('cls') unless new_game
+  def clear_screen
+    system('clear') || system('cls')
   end
 
   def npc_make_choice
@@ -192,10 +192,8 @@ class Game
   end
 
   def play_a_round
-    new_game = true
     initialize_cards
     loop do
-      clear_screen(new_game)
       display_cards
       human_make_choice
       break if human.busted?
