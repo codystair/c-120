@@ -1,3 +1,5 @@
+require 'pry'
+# ------------------------------------------------------------------------------
 module Instruction
   def introduce_rule
     puts(<<-M)
@@ -25,7 +27,7 @@ module Instruction
     M
   end
 end
-
+# ------------------------------------------------------------------------------
 class Player
   attr_reader :species, :name, :cards_in_hand
   attr_accessor :current_move
@@ -62,12 +64,12 @@ class Player
 
   def total
     pre_sum = sum_of_cards_value
-   if pre_sum > 21 && big_ace_count >= 1
-     readjust_cards_value
-     sum_of_cards_value
-   else
-     pre_sum
-   end
+    if pre_sum > 21 && big_ace_count >= 1
+      readjust_cards_value
+      sum_of_cards_value
+    else
+      pre_sum
+    end
   end
 
   def busted?
@@ -75,7 +77,7 @@ class Player
     total > 21
   end
 end
-
+# ------------------------------------------------------------------------------
 class Game
   include Instruction
   attr_reader :human, :npc, :cards_pool
@@ -83,8 +85,6 @@ class Game
   def initialize
     @cards_pool = Deck.new.cards
     initialize_players
-    ace = Card.new('Hearts', 'A')
-    ace2 = Card.new('Spades', 'A')
   end
 
   def initialize_players
@@ -104,9 +104,9 @@ class Game
   end
 
   def ask_for_move
-    puts "\nPlease evaluate your cards in hand, then choose to hit or stay (h / s):"
+    puts "\nPlease evaluate your cards in hand, choose to hit or stay (h / s):"
     answer = gets.chomp
-    if answer.downcase.start_with?('s') || answer.downcase.start_with?('h')
+    if answer.downcase.start_with?('s', 'h')
       answer.downcase[0]
     else
       puts 'Invalid choice! Try again.'
@@ -147,11 +147,11 @@ class Game
   def report_result
     puts "\nBoth players chose to stay ..." if both_staying?
     result =
-    case find_out_winner
-    when 'tie' then " It's a tie! "
-    when 'human' then " Human won this round! "
-    when 'npc' then " Npc won this round! "
-    end
+      case find_out_winner
+      when 'tie' then " It's a tie! "
+      when 'human' then " Human won this round! "
+      when 'npc' then " Npc won this round! "
+      end
     puts("\n" + result.center(80, ' * ') + "\n")
     show_values
   end
@@ -165,11 +165,15 @@ class Game
     human.total == npc.total
   end
 
+  def winner_without_busted
+    human.total < npc.total ? 'npc' : 'human'
+  end
+
   def find_out_winner
     if tie?
       'tie'
     elsif human.total <= 21 && npc.total <= 21
-      human.total < npc.total ? 'npc' : 'human'
+      winner_without_busted
     elsif human.total > 21
       'npc'
     elsif npc.total > 21
@@ -208,9 +212,8 @@ class Game
     puts "\nNpc's cards are: "
     npc.cards_in_hand.each { |card| puts card }
   end
-
 end
-
+# ------------------------------------------------------------------------------
 class Deck
   SUIT = %w[Hearts Diamonds Spades Clubs]
   RANK = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
@@ -226,24 +229,27 @@ class Deck
     @cards.shuffle!
   end
 end
-
+# ------------------------------------------------------------------------------
 class Card
   attr_reader :suit, :rank
   attr_accessor :state, :value
 
+  @values = {}
+  class << self; attr_accessor :values; end
+
+  def self.insert_values
+    Deck::RANK.each.with_index(2) do |rank, value|
+      @values[rank] = value
+    end
+  end
+
+  insert_values
+
   def initialize(suit, rank)
-    @@values = {}
-    insert_values
     @suit = suit
     @rank = rank
     @state = :public
-    @value = @@values[@rank]
-  end
-  #
-  def insert_values
-    Deck::RANK.each.with_index(2) do |rank, value|
-      @@values[rank] = value
-    end
+    @value = Card.values[@rank]
   end
 
   def to_s
