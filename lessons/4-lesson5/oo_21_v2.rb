@@ -10,7 +10,7 @@ module Instruction
         - You and Npc will both get 2 cards initially.
         - Every round you could choose to stay or hit.
         - The one who's more close to 21 would be the winner.
-        - But the one who first surpass 21 will get busted, means lost.
+        - But the one who first surpasses 21 will get busted, means lost.
         - One of the Npc's card is always invisible for you.
         - Before Npc's total is less than or equal to 17, it must choose to hit.
         - If both players choose to stay, the game would end up comparing players' total
@@ -21,7 +21,7 @@ module Instruction
           2) if the total of your cards is greater than 21
             # system will automatically change one of your 'A's value to 1
             # this process will continue until:
-                a. the you total is less than 21
+                a. your total is less than 21
                    or
                 b. all your 'A's have been degraded.
     M
