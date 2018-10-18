@@ -18,7 +18,7 @@ I fixed this bug, now it works for customized mark.
 
 5. Changed `system 'clear'` to `system('clear') || system('cls')`
 
-6. Remove `require 'pry'` from the code.
+6. Removed `require 'pry'` from the code.
 
 7. Change all methods which end with `_com` to full word 'combination'
 
