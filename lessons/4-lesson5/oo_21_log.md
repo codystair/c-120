@@ -22,20 +22,18 @@ For example:
 1st turn:
 
 - Human: `9` and `10` # total == 19    
-- Npc: `5` and `5` # total == 10
+- Npc: `[unknown]` and `10` # total > 10
 
 In this situation, I think it's more likely I would win. So I choose **stay**.
 
 2nd turn:
 
-Npc's total < 17, so it has to choose **hit**
+Maybe npc's total < 17, so it has to choose **hit**
 
-- Npc: `5`, `5`, `J` # total == 21
+- Npc: `[unknown]`, `10`, `10` # total > 20
 
-Now I know next turn Npc must choose stay and it reached 21, right on the winning point. If I don't wanna lose, there's only one choice -- taking the risk of asking for additional card and hope it would reach a tie.
+Now I know next turn Npc must choose stay(total > 17) and it didn't get busted last turn so the `[unknown]` must be `A`, so it's total is 21, right on the winning point. If I don't wanna lose, there's only one choice -- taking the risk of asking for additional card and hope it would reach a tie.
 
 ---
 
 Actually, the description "evaluate your cards in hand" is not accurate. It might have been "evaluate the situation".
-
-Does this explanation make any sense?
