@@ -1,3 +1,7 @@
+## Very basic things:
+
+![](https://s3-ap-southeast-1.amazonaws.com/image-for-articles/image-bucket-1/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7+2018-10-25+14.13.21.png)
+
 ## Introduction
 
 Two types of programming
@@ -324,4 +328,4 @@ You may always choose to be more specific about which type of exception to handl
 -  We say that calling the setter method, if available, is safer since using the instance variable bypasses any checks or operations performed by the setter.
 - There is one other "form" of the keyword super. We can call it as super(). This calls the superclass method of the same name as the calling method, but here no arguments are passed to the superclass method at all.
 - `Exception` is the top-most class in Ruby's exception hierarchy and it seems a straightforward choice to rescue or inherit from. But it's too broad. When creating custom exceptions and when rescuing exceptions, it's good practice to always use the subclass `StandardError`. `StandardError` subsumes all application-level errors. The other descendants of `Exception` are used for system- or environment-level errors, like memory overflows or program interruptions. These are the kind of errors your application usually does not want to throw - and definitely does not want to rescue, they should be handled by Ruby itself.
-- In Ruby, setter methods **always** return the argument that was passed in, even when you add an explicit return statement. 
+- In Ruby, setter methods **always** return the argument that was passed in, even when you add an explicit return statement.
