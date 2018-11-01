@@ -6,8 +6,8 @@
 
 Two types of programming
 
-- procedural programming
-- object oriented programming
+- Procedural programming
+- Object oriented programming
 
 ## Assignment: OO Book
 
