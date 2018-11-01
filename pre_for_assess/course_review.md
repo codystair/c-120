@@ -1,6 +1,6 @@
 ## Very basic things:
 
-![](https://s3-ap-southeast-1.amazonaws.com/image-for-articles/image-bucket-1/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7+2018-10-25+14.13.21.png)
+
 
 ## Introduction
 
