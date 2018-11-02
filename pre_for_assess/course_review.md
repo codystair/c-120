@@ -22,7 +22,6 @@ Two types of programming
 
 
 - Polymorphism is the ability for data to be represented as many different types. "Poly" stands for "many" and "morph" stands for "forms". OOP gives us flexibility in using pre-written code for new purposes.
-  - Same set of data can be represented, passed, manipulated or output by different ways, based on how we design(/organize) the structures and relationships of classes(/objects).
 
 - Think of classes as molds and objects as the things you produce out of those molds. Individual objects will contain different information from other objects, yet they are instances of the same class.
   - Class(mold, blueprint, template)
