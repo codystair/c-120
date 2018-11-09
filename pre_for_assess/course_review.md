@@ -96,16 +96,16 @@ NameError (uninitialized class variable @@soft in Dog)
 
 - The to_s instance method comes built in to every class in Ruby.
 
-- The puts method automatically calls `to_s` on its argument. By default, the `to_s` method returns the name of the object's class and an encoding of the object id.
+- The `puts` method automatically calls `to_s` on its argument. By default, the `to_s` method returns the name of the object's class and an encoding of the object id.
   - `puts 1`, `puts [1,2]`, `puts hash` ...
-  - `puts` can be understanded as 'put the string representation(what `to_s` will do) of this object.'
+  - `puts` can be understood as 'put the string representation(what `to_s` will do) of this object.'
 
-- There's another method called p that's very similar to puts, except it doesn't call to_s on its argument; it calls another built-in Ruby instance method called inspect. The inspect method is very helpful for debugging purposes, so we don't want to override it.
+- There's another method called `p` that's very similar to puts, except it doesn't call `to_s` on its argument; it calls another built-in Ruby instance method called `inspect`. The `inspect` method is very helpful for debugging purposes, so we don't want to override it.
   - `p` method just like 'put the object as it is'
 - So this implies that `p sparky` is equivalent to `puts sparky.inspect`.
-- Besides being called automatically when using puts, another important attribute of the to_s method is that it's also automatically called in string interpolation.
+- Besides being called automatically when using `puts`, another important attribute of the `to_s` method is that it's also automatically called in string interpolation.
 
-- In summary, the to_s method is called automatically on the object when we use it with puts or when used with string interpolation. This fact may seem trivial at the moment, but knowing when to_s is called will help us understand how to read and write better OO code.
+- In summary, the `to_s` method is called automatically on the object when we use it with `puts` or when used with string interpolation. This fact may seem trivial at the moment, but knowing when `to_s` is called will help us understand how to read and write better OO code.
 
 - From within the class, when an instance method calls `self`, it is returning the calling object.
 
@@ -148,7 +148,7 @@ end
 Features.shine # notice the usage here.
 ```
 
-It's not in a class so it's not a class method before it is mixed in another class. And it's not a instance method either. But, we can call it without any class by prepending the name of the module.
+It's not in a class so it's not a class method before it is mixed in another class. And it's not an instance method either. But, we can call it without any class by prepending the name of the module.
 
 Private, Protected, and Public
 
@@ -326,5 +326,8 @@ You may always choose to be more specific about which type of exception to handl
 - When a method is private, only the class - not instances of the class - can access it. However, when a method is protected, only instances of the class or a subclass can call the method. This means we can easily share sensitive data between instances of the same class type.
 -  We say that calling the setter method, if available, is safer since using the instance variable bypasses any checks or operations performed by the setter.
 - There is one other "form" of the keyword super. We can call it as super(). This calls the superclass method of the same name as the calling method, but here no arguments are passed to the superclass method at all.
+- `Enumerable#min` and `Enumerable#max` work with objects whose classes mix-in the `Comparable` module, which means the class must provide a `<=>` method.
+- we invoke `Array#sort`. It sorts the elements based on comparisons done by the `<=>` method. Therefore, the objects in the collection we are sorting must have access to a `<=>` method. Since our Length class does not implement a `<=>` method, we get an error saying that the "comparison of Length with Length failed".
+- If you want, you can remove the `==`, `<`, `<=`, `>`, and `>=` methods by adding `include Comparable` (see this link), as it implements all of the comparison methods **based on** `<=>`. However, you don't need to perform this step.
 - `Exception` is the top-most class in Ruby's exception hierarchy and it seems a straightforward choice to rescue or inherit from. But it's too broad. When creating custom exceptions and when rescuing exceptions, it's good practice to always use the subclass `StandardError`. `StandardError` subsumes all application-level errors. The other descendants of `Exception` are used for system- or environment-level errors, like memory overflows or program interruptions. These are the kind of errors your application usually does not want to throw - and definitely does not want to rescue, they should be handled by Ruby itself.
 - In Ruby, setter methods **always** return the argument that was passed in, even when you add an explicit return statement.
